@@ -7,38 +7,66 @@ using System.Threading;
 
 namespace snake
 {
+    
     class Program
     {
+        
+        const int WIDTH = 100;
+        const int HEIGHT = 40;
         static void Main(string[] args)
         {
-            Console.SetBufferSize(90, 30);
-            
-            HorizontalLine upline = new HorizontalLine(0,88,0,'+');
-            upline.Draw();
-            HorizontalLine downline = new HorizontalLine(0, 88, 29, '+');
-            downline.Draw();
-            VerticalLine leftLine = new VerticalLine(0, 0, 29, '+');
-            leftLine.Draw();
-            VerticalLine rightLine = new VerticalLine(88, 0, 29, '+');
-            rightLine.Draw();
+            // Установил рамки окна консоли.. Важный момент, есть какие-то невидимые символы, 
+            //  Подозреваю, что это символ переноса строки, поэтому граница чуть больше на 2 деления.
+            Console.SetWindowSize(WIDTH + 2, HEIGHT + 2);
+            Console.SetBufferSize(WIDTH + 2, HEIGHT + 2);
 
-            Point p = new Point(4, 5, '*');
-            Snake snake = new Snake(p,4,Direction.RIGHT);
+            //  отрисовка рамки
+            Walls walls = new Walls(WIDTH, HEIGHT);
+            walls.Draw();
+
+            //  Отрисовка змейки
+            Point p1 = new Point(4, 5, '*');
+            Snake snake = new Snake(p1, 4, Direction.RIGHT);
             snake.Draw();
-            snake.Move();
-            Thread.Sleep(300);
-            snake.Move();
-            Thread.Sleep(300);
-            snake.Move();
-            Thread.Sleep(300);
-            snake.Move();
-            Thread.Sleep(300);
-            snake.Move();
-            Thread.Sleep(300);
-            snake.Move();
 
+            //  Создание еды
+            FoodCreator foodCreator = new FoodCreator(WIDTH, HEIGHT, '+');
+            Point food = foodCreator.CreateFood();
+            food.Draw();
+            Console.CursorVisible = false;
+            while (true)
+            {
+                if (walls.IsHit(snake) || snake.IsHitTail())
+                {
+                    break;
+                }
+                if (snake.Eat(food))
+                {
+                    food = foodCreator.CreateFood();
+                    food.Draw();
+                }
+                else
+                {
+                    snake.Move();
+                }
 
-            Console.ReadLine();
+                Thread.Sleep(100);
+
+                if (Console.KeyAvailable)
+                {
+                    //  Читаем клавишу нажатую пользователем
+                    ConsoleKeyInfo key = Console.ReadKey();
+                    //  Передаем клавишу в класс Snake для обработки
+                    snake.HandleKey(key.Key);
+                }
+            }
         }
+
+        private static void Draw(Figure figure)
+        {
+            figure.Draw();
+        }
+    
+
     }
 }
